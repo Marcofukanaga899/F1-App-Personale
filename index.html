@@ -88,16 +88,28 @@
     <div class="rank-list" id="driversList"></div>
     <div class="rank-list" id="teamsList" style="display:none;"></div>
 
+    </div></div>
+  </div>
+
+  <div class="accordion-item">
+    <button class="accordion-header" data-acc="confronto">
+      <div class="section-title"><div class="bar"></div>Confronto piloti</div>
+      <span class="chevron">⌄</span>
+    </button>
+    <div class="accordion-body" id="acc-confronto"><div class="accordion-body-inner">
     <div class="compare-block">
-      <div class="compare-title">Confronta due piloti</div>
       <div class="compare-selects">
         <select id="cmpA"></select>
         <span class="compare-vs">vs</span>
         <select id="cmpB"></select>
       </div>
+      <div class="compare-selects" style="margin-top:8px;">
+        <select id="cmpFrom"></select>
+        <span class="compare-vs">→</span>
+        <select id="cmpTo"></select>
+      </div>
       <div id="compareResult"></div>
     </div>
-
     </div></div>
   </div>
 

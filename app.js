@@ -286,13 +286,11 @@ async function renderCompare(){
         <div class="compare-card">
           <div class="team-badge" style="background:${a.color}; margin:0 auto 6px;"><span style="color:${contrastText(a.color)}">${TEAM_CODES[a.team]||'—'}</span></div>
           <div class="compare-name">${a.name}</div>
-          <div class="compare-pos">Attuale: P${a.pos}</div>
           <div class="compare-pts">${totalA}</div>
         </div>
         <div class="compare-card">
           <div class="team-badge" style="background:${b.color}; margin:0 auto 6px;"><span style="color:${contrastText(b.color)}">${TEAM_CODES[b.team]||'—'}</span></div>
           <div class="compare-name">${b.name}</div>
-          <div class="compare-pos">Attuale: P${b.pos}</div>
           <div class="compare-pts">${totalB}</div>
         </div>
       </div>
@@ -301,7 +299,7 @@ async function renderCompare(){
   } catch(err){
     el.innerHTML = `<div style="text-align:center; padding:14px; color:var(--text-2); font-size:12px;">Dati non disponibili al momento.</div>`;
   }
-  recalcAccordionHeight('acc-classifica');
+  recalcAccordionHeight('acc-confronto');
 }
 
 
