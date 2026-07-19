@@ -116,6 +116,7 @@ async function loadStandings(){
     });
     fillDrivers();
     fillTeams();
+    setupCompare();
   } catch(err){
     document.getElementById('driversList').innerHTML =
       `<div style="padding:20px; text-align:center; color:var(--text-2); font-size:13px;">Classifica non disponibile al momento (${err.message}). Riprova tra poco.</div>`;
@@ -124,11 +125,19 @@ async function loadStandings(){
 
 function fmtGap(g){ return g===0 ? '—' : (g>0?'+':'') + g; }
 
-function driverRowHTML(d, isFav){
+function posBadgeHTML(pos){
+  const p = Number(pos);
+  const medal = p===1 ? {bg:'#FFD700', fg:'#5C4400'} : p===2 ? {bg:'#D6D6D6', fg:'#4A4A4A'} : p===3 ? {bg:'#D89E63', fg:'#5C3E1B'} : null;
+  const style = medal ? `background:${medal.bg}; color:${medal.fg};` : `background:var(--surface); color:var(--text-2);`;
+  return `<div class="rank-num-badge" style="${style}">${pos}</div>`;
+}
+
+function driverRowHTML(d, isFav, leaderPts){
+  const pct = leaderPts > 0 ? Math.max(4, Math.round((d.pts/leaderPts)*100)) : 0;
   return `
-    <div class="rank-row">
+    <div class="rank-row" style="border-left:4px solid ${d.color}">
       <button class="star-btn${isFav?' on':''}" data-fav="drivers" data-name="${d.name}">${isFav?'★':'☆'}</button>
-      <div class="rank-num">${d.pos}</div>
+      ${posBadgeHTML(d.pos)}
       <div class="team-badge" style="background:${d.color}"><span style="color:${contrastText(d.color)}">${TEAM_CODES[d.team]||'—'}</span></div>
       <div class="rank-info">
         <div class="rank-name"><span class="num-badge" style="background:${d.color}; color:${contrastText(d.color)}; border:1px solid rgba(0,0,0,.12)">${d.num}</span>${d.name}</div>
@@ -137,40 +146,90 @@ function driverRowHTML(d, isFav){
       <div class="rank-right">
         <div class="rank-pts">${d.pts}</div>
         <div class="rank-gap">${fmtGap(d.gap)}</div>
+        <div class="gap-bar"><div style="width:${pct}%; background:${d.color};"></div></div>
       </div>
     </div>`;
 }
-function teamRowHTML(t, isFav){
+function teamRowHTML(t, isFav, leaderPts){
+  const pct = leaderPts > 0 ? Math.max(4, Math.round((t.pts/leaderPts)*100)) : 0;
   return `
-    <div class="rank-row">
+    <div class="rank-row" style="border-left:4px solid ${t.color}">
       <button class="star-btn${isFav?' on':''}" data-fav="teams" data-name="${t.name}">${isFav?'★':'☆'}</button>
-      <div class="rank-num">${t.pos}</div>
+      ${posBadgeHTML(t.pos)}
       <div class="team-badge" style="background:${t.color}"><span style="color:${contrastText(t.color)}">${TEAM_CODES[t.name]||'—'}</span></div>
       <div class="rank-info"><div class="rank-name">${t.name}</div></div>
       <div class="rank-right">
         <div class="rank-pts">${t.pts}</div>
         <div class="rank-gap">${fmtGap(t.gap)}</div>
+        <div class="gap-bar"><div style="width:${pct}%; background:${t.color};"></div></div>
       </div>
     </div>`;
 }
 function fillDrivers(){
   const el = document.getElementById('driversList');
   const favs = getFavs('paddock_fav_drivers');
+  const leaderPts = driversData.length ? driversData[0].pts : 0;
   const favItems = driversData.filter(d=>favs.includes(d.name));
   let html = '';
-  if(favItems.length) html += `<div class="fav-block"><div class="fav-label">Preferiti</div>${favItems.map(d=>driverRowHTML(d,true)).join('')}</div>`;
-  html += driversData.map(d=>driverRowHTML(d, favs.includes(d.name))).join('');
+  if(favItems.length) html += `<div class="fav-block"><div class="fav-label">Preferiti</div>${favItems.map(d=>driverRowHTML(d,true,leaderPts)).join('')}</div>`;
+  html += driversData.map(d=>driverRowHTML(d, favs.includes(d.name), leaderPts)).join('');
   el.innerHTML = html;
 }
 function fillTeams(){
   const el = document.getElementById('teamsList');
   const favs = getFavs('paddock_fav_teams');
+  const leaderPts = teamsData.length ? teamsData[0].pts : 0;
   const favItems = teamsData.filter(t=>favs.includes(t.name));
   let html = '';
-  if(favItems.length) html += `<div class="fav-block"><div class="fav-label">Preferiti</div>${favItems.map(t=>teamRowHTML(t,true)).join('')}</div>`;
-  html += teamsData.map(t=>teamRowHTML(t, favs.includes(t.name))).join('');
+  if(favItems.length) html += `<div class="fav-block"><div class="fav-label">Preferiti</div>${favItems.map(t=>teamRowHTML(t,true,leaderPts)).join('')}</div>`;
+  html += teamsData.map(t=>teamRowHTML(t, favs.includes(t.name), leaderPts)).join('');
   el.innerHTML = html;
 }
+
+// ---------- CONFRONTO DUE PILOTI ----------
+function setupCompare(){
+  const selA = document.getElementById('cmpA');
+  const selB = document.getElementById('cmpB');
+  if(!selA || !selB || !driversData.length) return;
+
+  const options = driversData.map((d,i)=>`<option value="${i}">${d.name}</option>`).join('');
+  selA.innerHTML = options;
+  selB.innerHTML = options;
+  selA.value = 0;
+  selB.value = driversData.length > 1 ? 1 : 0;
+
+  const render = () => {
+    const a = driversData[Number(selA.value)];
+    const b = driversData[Number(selB.value)];
+    const el = document.getElementById('compareResult');
+    if(!a || !b){ el.innerHTML = ''; return; }
+    const diff = a.pts - b.pts;
+    const diffLabel = diff === 0 ? 'Stessi punti' : diff > 0
+      ? `${a.name} +${diff} punti su ${b.name}`
+      : `${b.name} +${-diff} punti su ${a.name}`;
+    el.innerHTML = `
+      <div class="compare-cards">
+        <div class="compare-card">
+          <div class="team-badge" style="background:${a.color}; margin:0 auto 6px;"><span style="color:${contrastText(a.color)}">${TEAM_CODES[a.team]||'—'}</span></div>
+          <div class="compare-name">${a.name}</div>
+          <div class="compare-pos">P${a.pos}</div>
+          <div class="compare-pts">${a.pts}</div>
+        </div>
+        <div class="compare-card">
+          <div class="team-badge" style="background:${b.color}; margin:0 auto 6px;"><span style="color:${contrastText(b.color)}">${TEAM_CODES[b.team]||'—'}</span></div>
+          <div class="compare-name">${b.name}</div>
+          <div class="compare-pos">P${b.pos}</div>
+          <div class="compare-pts">${b.pts}</div>
+        </div>
+      </div>
+      <div class="compare-diff">${diffLabel}</div>
+    `;
+  };
+  selA.addEventListener('change', () => { render(); recalcAccordionHeight('acc-classifica'); });
+  selB.addEventListener('change', () => { render(); recalcAccordionHeight('acc-classifica'); });
+  render();
+}
+
 
 document.getElementById('driversList').addEventListener('click', handleStarClick);
 document.getElementById('teamsList').addEventListener('click', handleStarClick);
@@ -364,13 +423,35 @@ function sessionRowHTML(pos, name, team, num, valueLabel){
   const color = TEAM_COLORS[team] || '#CCCCCC';
   return `
     <div class="rank-row">
-      <div class="rank-num">${pos}</div>
+      ${posBadgeHTML(pos)}
       <div class="team-badge" style="background:${color}"><span style="color:${contrastText(color)}">${TEAM_CODES[team]||'—'}</span></div>
       <div class="rank-info">
         <div class="rank-name"><span class="num-badge" style="background:${color}; color:${contrastText(color)}; border:1px solid rgba(0,0,0,.12)">${num}</span>${name}</div>
         <div class="rank-team">${team}</div>
       </div>
       <div class="rank-right"><div class="rank-pts mono">${valueLabel}</div></div>
+    </div>`;
+}
+function qualifyingCardHTML(q){
+  const team = normalizeTeamName(q.Constructor.constructorId, q.Constructor.name);
+  const color = TEAM_COLORS[team] || '#CCCCCC';
+  const num = q.Driver.permanentNumber || q.number;
+  const name = `${q.Driver.givenName[0]}. ${q.Driver.familyName}`;
+  const eliminatedIn = !q.Q2 ? 'Q1' : (!q.Q3 ? 'Q2' : null);
+  const times = [];
+  if(q.Q1) times.push({label:'Q1', val:q.Q1});
+  if(q.Q2) times.push({label:'Q2', val:q.Q2});
+  if(q.Q3) times.push({label:'Q3', val:q.Q3});
+  const timesHTML = times.map(t=>`<div class="q-time-cell"><div class="q-label">${t.label}</div><div class="q-time mono">${t.val}</div></div>`).join('');
+  return `
+    <div class="quali-card"${eliminatedIn ? ' style="opacity:.55"' : ''}>
+      <div class="quali-head">
+        ${posBadgeHTML(q.position)}
+        <div class="team-badge" style="background:${color}"><span style="color:${contrastText(color)}">${TEAM_CODES[team]||'—'}</span></div>
+        <div class="rank-info"><div class="rank-name"><span class="num-badge" style="background:${color}; color:${contrastText(color)}; border:1px solid rgba(0,0,0,.12)">${num}</span>${name}</div></div>
+        ${eliminatedIn ? `<div class="quali-elim">Eliminato in ${eliminatedIn}</div>` : ''}
+      </div>
+      <div class="quali-times">${timesHTML}</div>
     </div>`;
 }
 function emptyState(msg){
@@ -388,11 +469,7 @@ async function loadSessionResults(race){
     if(forRound !== displayedRound) return;
     const qRace = qRes.MRData.RaceTable.Races[0];
     if(qRace && qRace.QualifyingResults?.length){
-      qEl.innerHTML = qRace.QualifyingResults.map(q => {
-        const team = normalizeTeamName(q.Constructor.constructorId, q.Constructor.name);
-        const time = q.Q3 || q.Q2 || q.Q1 || '—';
-        return sessionRowHTML(q.position, `${q.Driver.givenName[0]}. ${q.Driver.familyName}`, team, q.Driver.permanentNumber || q.number, time);
-      }).join('');
+      qEl.innerHTML = qRace.QualifyingResults.map(q => qualifyingCardHTML(q)).join('');
     } else {
       qEl.innerHTML = emptyState('Qualifiche non ancora disputate o risultato non ancora pubblicato.');
     }
