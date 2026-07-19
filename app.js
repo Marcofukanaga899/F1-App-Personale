@@ -76,6 +76,7 @@ let seasonRaces = [];       // tutti i GP della stagione (calendario completo)
 let headerSessions = [];    // sessioni del PROSSIMO gp reale, guidano il countdown in header
 let nextRoundGlobal = null; // round del prossimo gp reale
 let displayedRound = null;  // round attualmente mostrato nel pannello "Circuito"
+let CURRENT_SEASON = null;  // stagione in corso, dedotta dal calendario
 let countdownTimer = null;
 
 // ============================================================
@@ -98,6 +99,7 @@ async function loadStandings(){
         pos: Number(ds.position),
         num: ds.Driver.permanentNumber || '—',
         name: (ds.Driver.givenName?.[0] || '') + '. ' + ds.Driver.familyName,
+        driverId: ds.Driver.driverId,
         team,
         color: TEAM_COLORS[team] || '#CCCCCC',
         pts: Number(ds.points),
@@ -116,7 +118,7 @@ async function loadStandings(){
     });
     fillDrivers();
     fillTeams();
-    setupCompare();
+    populateCompareDrivers();
   } catch(err){
     document.getElementById('driversList').innerHTML =
       `<div style="padding:20px; text-align:center; color:var(--text-2); font-size:13px;">Classifica non disponibile al momento (${err.message}). Riprova tra poco.</div>`;
@@ -186,49 +188,122 @@ function fillTeams(){
   el.innerHTML = html;
 }
 
-// ---------- CONFRONTO DUE PILOTI ----------
-function setupCompare(){
+// ---------- CONFRONTO DUE PILOTI (per intervallo di gare) ----------
+let compareListenersAttached = false;
+const driverResultsCache = {}; // driverId -> array di {round, points}
+
+function populateCompareDrivers(){
   const selA = document.getElementById('cmpA');
   const selB = document.getElementById('cmpB');
   if(!selA || !selB || !driversData.length) return;
-
   const options = driversData.map((d,i)=>`<option value="${i}">${d.name}</option>`).join('');
   selA.innerHTML = options;
   selB.innerHTML = options;
   selA.value = 0;
   selB.value = driversData.length > 1 ? 1 : 0;
+  attachCompareListenersOnce();
+  renderCompare();
+}
 
-  const render = () => {
-    const a = driversData[Number(selA.value)];
-    const b = driversData[Number(selB.value)];
-    const el = document.getElementById('compareResult');
-    if(!a || !b){ el.innerHTML = ''; return; }
-    const diff = a.pts - b.pts;
-    const diffLabel = diff === 0 ? 'Stessi punti' : diff > 0
-      ? `${a.name} +${diff} punti su ${b.name}`
-      : `${b.name} +${-diff} punti su ${a.name}`;
+function populateCompareRounds(){
+  const selFrom = document.getElementById('cmpFrom');
+  const selTo = document.getElementById('cmpTo');
+  if(!selFrom || !selTo || !seasonRaces.length) return;
+  const options = seasonRaces.map(r=>`<option value="${r.round}">R${r.round} — ${r.raceName.replace(' Grand Prix','')}</option>`).join('');
+  selFrom.innerHTML = options;
+  selTo.innerHTML = options;
+  selFrom.value = 1;
+  selTo.value = nextRoundGlobal || seasonRaces[seasonRaces.length-1].round;
+  attachCompareListenersOnce();
+  renderCompare();
+}
+
+function attachCompareListenersOnce(){
+  if(compareListenersAttached) return;
+  const ids = ['cmpA','cmpB','cmpFrom','cmpTo'];
+  ids.forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.addEventListener('change', renderCompare);
+  });
+  compareListenersAttached = true;
+}
+
+async function getDriverRoundPoints(driverId){
+  if(driverResultsCache[driverId]) return driverResultsCache[driverId];
+
+  const [raceData, sprintData] = await Promise.all([
+    fetchJSON(`${API_BASE}/${CURRENT_SEASON}/drivers/${driverId}/results.json`),
+    fetchJSON(`${API_BASE}/${CURRENT_SEASON}/drivers/${driverId}/sprint.json`).catch(() => null)
+  ]);
+
+  const races = raceData.MRData.RaceTable.Races || [];
+  const byRound = {};
+  races.forEach(r => {
+    byRound[Number(r.round)] = Number(r.Results?.[0]?.points || 0);
+  });
+
+  const sprintRaces = sprintData?.MRData?.RaceTable?.Races || [];
+  sprintRaces.forEach(r => {
+    const round = Number(r.round);
+    const sprintPts = Number(r.SprintResults?.[0]?.points || 0);
+    byRound[round] = (byRound[round] || 0) + sprintPts;
+  });
+
+  const points = Object.keys(byRound).map(round => ({ round: Number(round), points: byRound[round] }));
+  driverResultsCache[driverId] = points;
+  return points;
+}
+
+async function renderCompare(){
+  const selA = document.getElementById('cmpA');
+  const selB = document.getElementById('cmpB');
+  const selFrom = document.getElementById('cmpFrom');
+  const selTo = document.getElementById('cmpTo');
+  const el = document.getElementById('compareResult');
+  if(!selA || !selB || !selFrom || !selTo || !el) return;
+  if(!driversData.length || !seasonRaces.length || !CURRENT_SEASON) return;
+
+  const a = driversData[Number(selA.value)];
+  const b = driversData[Number(selB.value)];
+  const from = Number(selFrom.value);
+  const to = Number(selTo.value);
+  if(!a || !b) return;
+
+  el.innerHTML = `<div style="text-align:center; padding:14px; color:var(--text-2); font-size:12px;">Calcolo punti nell'intervallo…</div>`;
+
+  try{
+    const [ptsA, ptsB] = await Promise.all([getDriverRoundPoints(a.driverId), getDriverRoundPoints(b.driverId)]);
+    const sum = (arr) => arr.filter(r => r.round >= Math.min(from,to) && r.round <= Math.max(from,to)).reduce((s,r)=>s+r.points, 0);
+    const totalA = sum(ptsA);
+    const totalB = sum(ptsB);
+    const diff = totalA - totalB;
+    const diffLabel = diff === 0 ? 'Stessi punti in questo intervallo' : diff > 0
+      ? `${a.name} +${diff} punti su ${b.name} in questo intervallo`
+      : `${b.name} +${-diff} punti su ${a.name} in questo intervallo`;
+
     el.innerHTML = `
       <div class="compare-cards">
         <div class="compare-card">
           <div class="team-badge" style="background:${a.color}; margin:0 auto 6px;"><span style="color:${contrastText(a.color)}">${TEAM_CODES[a.team]||'—'}</span></div>
           <div class="compare-name">${a.name}</div>
-          <div class="compare-pos">P${a.pos}</div>
-          <div class="compare-pts">${a.pts}</div>
+          <div class="compare-pos">Attuale: P${a.pos}</div>
+          <div class="compare-pts">${totalA}</div>
         </div>
         <div class="compare-card">
           <div class="team-badge" style="background:${b.color}; margin:0 auto 6px;"><span style="color:${contrastText(b.color)}">${TEAM_CODES[b.team]||'—'}</span></div>
           <div class="compare-name">${b.name}</div>
-          <div class="compare-pos">P${b.pos}</div>
-          <div class="compare-pts">${b.pts}</div>
+          <div class="compare-pos">Attuale: P${b.pos}</div>
+          <div class="compare-pts">${totalB}</div>
         </div>
       </div>
       <div class="compare-diff">${diffLabel}</div>
     `;
-  };
-  selA.addEventListener('change', () => { render(); recalcAccordionHeight('acc-classifica'); });
-  selB.addEventListener('change', () => { render(); recalcAccordionHeight('acc-classifica'); });
-  render();
+  } catch(err){
+    el.innerHTML = `<div style="text-align:center; padding:14px; color:var(--text-2); font-size:12px;">Dati non disponibili al momento.</div>`;
+  }
+  recalcAccordionHeight('acc-classifica');
 }
+
 
 
 document.getElementById('driversList').addEventListener('click', handleStarClick);
@@ -269,6 +344,7 @@ async function loadCalendarAndCircuit(){
   try{
     const seasonRes = await fetchJSON(`${API_BASE}/current.json`);
     seasonRaces = seasonRes.MRData.RaceTable.Races;
+    CURRENT_SEASON = seasonRaces[0]?.season || null;
 
     if(!seasonRaces.length){
       document.getElementById('circuitPanel').innerHTML =
@@ -277,6 +353,7 @@ async function loadCalendarAndCircuit(){
     }
 
     const currentRace = pickCurrentRace(seasonRaces);
+    populateCompareRounds();
     showRound(currentRace);
     updateHeaderNext();
     setInterval(updateHeaderNext, 30000);
