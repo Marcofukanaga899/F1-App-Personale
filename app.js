@@ -11,17 +11,17 @@ const TEAM_CODES = {
   'Audi':'AUD', 'Aston Martin':'AST', 'Cadillac':'CAD'
 };
 const TEAM_COLORS = {
-  'Mercedes':      '#000000',
+  'Mercedes':      '#27F4D2',
   'Ferrari':       '#E80020',
   'Red Bull':      '#3671C6',
   'McLaren':       '#FF8000',
-  'Racing Bulls':  '#FFFFFF',
+  'Racing Bulls':  '#6692FF',
   'Aston Martin':  '#00665E',
   'Alpine':        '#FF87BC',
   'Williams':      '#64C4FF',
   'Audi':          '#C8CED4',
-  'Haas':          '#FFFFFF',
-  'Cadillac':      '#FFFFFF',
+  'Haas':          '#8B1A1A',
+  'Cadillac':      '#000000',
 };
 
 // Mappa circuitId (jolpica) -> id file tracciato in circuits-data.js
