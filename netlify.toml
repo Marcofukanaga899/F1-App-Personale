@@ -1,0 +1,14 @@
+[build]
+  publish = "."
+
+[functions]
+  directory = "functions"
+
+[functions."send-reminders"]
+  schedule = "*/5 * * * *"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paddock — F1 Dashboard</title>
+<meta name="theme-color" content="#ffffff">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-32.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Paddock">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@300;400;600;700;900&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header>
+  <div class="wordmark"><div class="dash"></div>PADDOCK</div>
+  <div class="next-race">
+    <div style="min-width:0;">
+      <div class="label" id="nextLabel">Caricamento…</div>
+      <div class="name" id="nextName">—</div>
+    </div>
+    <div class="countdown" id="countdown">
+      <div><span id="cd-d">00</span><small>GG</small></div>
+      <div><span id="cd-h">00</span><small>ORE</small></div>
+      <div><span id="cd-m">00</span><small>MIN</small></div>
+      <div><span id="cd-s">00</span><small>SEC</small></div>
+    </div>
+  </div>
+</header>
+
+<div class="round-strip" id="roundStrip"></div>
+
+<div style="padding:10px 14px 0;">
+  <button class="refresh-btn" id="notifyBtn"><span class="dot"></span>Attiva notifiche sessioni</button>
+</div>
+
+<main>
+
+  <div class="accordion-item open">
+    <button class="accordion-header" data-acc="circuito">
+      <div class="section-title"><div class="bar"></div><span id="circuitAccTitle">Circuito</span></div>
+      <span class="chevron">⌄</span>
+    </button>
+    <div class="accordion-body" id="acc-circuito"><div class="accordion-body-inner">
+    <div class="circuit-panel" id="circuitPanel">
+      <div style="text-align:center; padding:20px; color:var(--text-2); grid-column:1/-1;">Caricamento dati circuito…</div>
+    </div>
+    </div></div>
+  </div>
+
+  <div class="accordion-item">
+    <button class="accordion-header" data-acc="sessioni">
+      <div class="section-title"><div class="bar"></div>Classifiche sessione</div>
+      <span class="chevron">⌄</span>
+    </button>
+    <div class="accordion-body" id="acc-sessioni"><div class="accordion-body-inner">
+
+    <div class="tabs" id="sessionTabsBox">
+      <div class="tab active" data-stab="quali">Qualifiche</div>
+      <div class="tab" data-stab="race">Gara</div>
+    </div>
+    <button class="refresh-btn" id="sessionRefreshBtn"><span class="dot"></span>Aggiorna ora</button>
+
+    <div class="rank-list" id="qualiList"></div>
+    <div class="rank-list" id="raceResList" style="display:none;"></div>
+
+    </div></div>
+  </div>
+
+  <div class="accordion-item open">
+    <button class="accordion-header" data-acc="classifica">
+      <div class="section-title"><div class="bar"></div>Classifica</div>
+      <span class="chevron">⌄</span>
+    </button>
+    <div class="accordion-body" id="acc-classifica"><div class="accordion-body-inner">
+
+    <div class="tabs" id="tabsBox">
+      <div class="tab active" data-tab="drivers">Piloti</div>
+      <div class="tab" data-tab="teams">Costruttori</div>
+    </div>
+    <button class="refresh-btn" id="refreshBtn"><span class="dot"></span>Aggiorna classifica</button>
+
+    <div class="rank-list" id="driversList"></div>
+    <div class="rank-list" id="teamsList" style="display:none;"></div>
+
+    </div></div>
+  </div>
+
+</main>
+
+<script src="circuits-data.js"></script>
+<script src="app.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js'));
+  }
+</script>
+</body>
+</html>
