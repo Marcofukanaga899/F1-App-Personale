@@ -167,3 +167,31 @@
 .team-badge.drv.has-photo > span{visibility:hidden;}
 .cmp-photo{display:flex; justify-content:center; margin-bottom:6px;}
 .cmp-photo .team-badge.drv{width:64px; height:64px;}
+
+/* ---- Live di Sessione: scheda (telefono) + tabella (PC) ---- */
+.ls-card{cursor:pointer;}
+.ls-card .ls-secs{display:none; padding-left:44px; margin-top:6px;}
+.ls-card.open .ls-secs{display:flex;}
+.ls-more{margin-left:auto; align-self:flex-end; font-size:10px; color:var(--text-2);}
+.ls-tablewrap{display:none;}
+.ls-table{width:100%; border-collapse:collapse; font-size:12.5px;}
+.ls-table th{font-size:9px; text-transform:uppercase; color:var(--text-2); text-align:left; padding:6px 8px; border-bottom:1px solid var(--surface-2); font-weight:600;}
+.ls-table td{padding:6px 8px; border-bottom:1px solid var(--surface-2); white-space:nowrap; vertical-align:middle;}
+.ls-pil{display:flex; align-items:center; gap:10px;}
+.ls-table td .rank-num-badge{margin:0;}
+@media (min-width:1000px){
+  main{max-width:1280px; display:grid; grid-template-columns:1fr 1fr; align-items:start;}
+  main > .accordion-item{margin:0;}
+  main > .accordion-item:nth-child(3){order:1;}
+  main > .accordion-item:nth-child(2){grid-column:1 / -1; order:2;}
+  main > .accordion-item:nth-child(4){grid-column:1 / -1; order:3;}
+  .ls-cards{display:none;}
+  .ls-tablewrap{display:block; overflow-x:auto;}
+  #pane-lss{display:none; grid-template-columns:1fr 300px; gap:0 18px; align-items:start;}
+  #pane-lss.active{display:grid;}
+  #lssStatus{grid-column:1 / -1;}
+  #lssList{grid-column:1; grid-row:2 / span 3;}
+  #lssWx{grid-column:2; grid-row:2;}
+  #lssRC{grid-column:2; grid-row:3;}
+  #pane-lss > div:last-child{grid-column:1 / -1;}
+}
