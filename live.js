@@ -5,7 +5,8 @@
 // ============================================================
 const LIVE_KEY = 'paddock_live_url';
 const live = { base:null, round:null, timer:null, kind:'drivers' };
-const liveUrl = () => { try{ return localStorage.getItem(LIVE_KEY) || ''; }catch(e){ return ''; } };
+// accetta anche indirizzi incollati per intero (es. .../api/status): tiene solo la parte iniziale
+const liveUrl = () => { try{ return (localStorage.getItem(LIVE_KEY) || '').trim().replace(/\/api(\/.*)?$/i, '').replace(/\/+$/, ''); }catch(e){ return ''; } };
 const liveIsOpen = () => document.getElementById('acc-live').closest('.accordion-item').classList.contains('open');
 const liveStatus = (dot, txt) => { document.getElementById('liveStatus').innerHTML = `<span class="live-dot" style="background:${dot}"></span>${txt}`; };
 const titleCase = t => (t || '').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
@@ -76,7 +77,7 @@ document.getElementById('liveSaveBtn').addEventListener('click', () => {
   let u = document.getElementById('liveUrlInput').value.trim().replace(/\/+$/, '');
   if(u && !/^https?:\/\//i.test(u)) u = 'https://' + u;
   try{ localStorage.setItem(LIVE_KEY, u); }catch(e){}
-  document.getElementById('liveUrlInput').value = u; live.round = null; livePoll();
+  document.getElementById('liveUrlInput').value = liveUrl(); live.round = null; livePoll();
 });
 document.querySelector('[data-acc="live"]').addEventListener('click', liveSchedule);
 document.querySelectorAll('#liveTabs .tab').forEach(tab => tab.addEventListener('click', () => {
