@@ -4,16 +4,27 @@
 // a ogni giro assegna i punti della gara in base alla posizione in pista.
 // ============================================================
 const PTS = [25,18,15,12,10,8,6,4,2,1];
+const SPRINT_PTS = [8,7,6,5,4,3,2,1];   // Sprint: 8-7-6-5-4-3-2-1, nessun punto per il giro veloce (né Sprint né gara)
+// nome del team come lo scrive il flusso F1 / OpenF1 ("RED BULL RACING", "Visa Cash App Racing Bulls"...) -> nome usato nell'app
+function normTeam(raw){
+  const t = String(raw || '').toLowerCase();
+  if(!t) return null;
+  if(/racing bulls|\brb\b|alphatauri|alpha tauri|toro rosso/.test(t)) return 'Racing Bulls';   // prima di Red Bull: il nome lo contiene
+  if(/red bull/.test(t)) return 'Red Bull';
+  if(/sauber|audi/.test(t)) return 'Audi';
+  for(const k of ['Mercedes','Ferrari','McLaren','Alpine','Aston Martin','Williams','Haas','Cadillac']) if(t.includes(k.toLowerCase())) return k;
+  return null;
+}
 const mnd = { race:null, data:null, lap:0, kind:'drivers' };
 
 async function jol(path){ try{ return (await fetchJSON(`${API_BASE}/${path}`)).MRData; }catch(e){ return null; } }
 
-async function loadBaseline(race){
+async function loadBaseline(race, skipSprint){
   const prev = race.round > 1 ? race.round - 1 : null;
   const [dsM, csM, spM] = await Promise.all([
     prev ? jol(`${race.season}/${prev}/driverStandings.json`) : null,
     prev ? jol(`${race.season}/${prev}/constructorStandings.json`) : null,
-    jol(`${race.season}/${race.round}/sprint.json`)
+    skipSprint ? null : jol(`${race.season}/${race.round}/sprint.json`)
   ]);
   const base = {}, team = {}, teamBase = {};
   (dsM?.StandingsTable?.StandingsLists?.[0]?.DriverStandings || []).forEach(x => {
@@ -40,7 +51,7 @@ async function buildMondiale(race, s){
 
   const D = {};
   drivers.forEach(d => {
-    const t = team[d.name_acronym] || d.team_name;
+    const t = normTeam(d.team_name) || team[d.name_acronym] || d.team_name;   // squadra di QUEL weekend (es. Lawson)
     D[d.driver_number] = { code:d.name_acronym, name:`${(d.first_name||'?')[0]}. ${d.last_name||d.name_acronym}`, team:t,
       color: TEAM_COLORS[t] || '#' + (d.team_colour || 'CCCCCC') };
   });
