@@ -4,12 +4,11 @@
 // I colori viola/verde sono quelli ufficiali del flusso F1 (OverallFastest / PersonalFastest).
 // ============================================================
 const lss = { kind:'order', timer:null };
-const lsOpen = () => document.getElementById('acc-lss').closest('.accordion-item').classList.contains('open');
 const lv = x => x == null ? '' : (typeof x === 'object' ? (x.Value ?? '') : x);
 const lcls = x => (x && typeof x === 'object') ? (x.OverallFastest ? 'p' : x.PersonalFastest ? 'g' : 'n') : 'n';
 const lcell = x => `<span class="mono lt-${lcls(x)}">${lv(x) || '—'}</span>`;
 const lcolor = l => '#' + (l.TeamColour || 'CCCCCC');
-const lname = l => `${(l.FirstName || '?')[0]}. ${l.LastName || l.Tla}`;
+const lname = l => liveName(l);
 const lsStatus = (dot, txt) => { document.getElementById('lssStatus').innerHTML = `<span class="live-dot" style="background:${dot}"></span>${txt}`; };
 
 function lsOrderHTML(rows, isRace){
@@ -35,7 +34,7 @@ function lsSectorsHTML(rows){
 
 async function lsPoll(){
   const el = document.getElementById('lssList');
-  if(!liveUrl()){ lsStatus('#B0B0B8', 'Server non configurato'); el.innerHTML = emptyState('Imposta prima l\'indirizzo del server nella sezione Mondiale LIVE.'); return; }
+  if(!liveUrl()){ lsStatus('#B0B0B8', 'Server non configurato'); el.innerHTML = emptyState('Imposta prima l\'indirizzo del server in Mondiale, tab Live.'); return; }
   try{
     const [sess, lc, sd] = await Promise.all([liveGet('/api/session'), liveGet('/api/lap-count'), liveGet('/api/standings')]);
     const rows = (sd.Leaderboard || []).map(n => sd.Lines[n]).filter(l => l && l.Tla);
@@ -44,17 +43,18 @@ async function lsPoll(){
     const isRace = /race|sprint/i.test(type) && !/qualif/i.test(type);
     lsStatus('#1CB854', `LIVE · ${sess.Session?.Name || type || 'Sessione'}${lap.CurrentLap ? ` · giro ${lap.CurrentLap}/${lap.TotalLaps || '—'}` : ''}`);
     el.innerHTML = lss.kind === 'order' ? lsOrderHTML(rows, isRace) : lsSectorsHTML(rows);
-    recalcAccordionHeight('acc-lss');
+    recalcAccordionHeight('acc-sessione');
   } catch(err){
     lsStatus('#E10600', 'Server non raggiungibile');
     el.innerHTML = emptyState('Controlla che il PC e il server siano accesi e che Tailscale sia attivo sul telefono.');
   }
 }
 function lsSchedule(){
-  clearInterval(lss.timer); lss.timer = null;
-  if(lsOpen()){ lsPoll(); lss.timer = setInterval(() => { if(!document.hidden) lsPoll(); }, 4000); }
+  const on = paneActive('pane-lss');
+  if(on && !lss.timer){ lsPoll(); lss.timer = setInterval(() => { if(!document.hidden) lsPoll(); }, 4000); }
+  else if(!on && lss.timer){ clearInterval(lss.timer); lss.timer = null; }
 }
-document.querySelector('[data-acc="lss"]').addEventListener('click', lsSchedule);
+document.addEventListener('pane-shown', lsSchedule);
 document.querySelectorAll('#lssTabs .tab').forEach(tab => tab.addEventListener('click', () => {
   document.querySelectorAll('#lssTabs .tab').forEach(t => t.classList.remove('active'));
   tab.classList.add('active'); lss.kind = tab.dataset.sk; lsPoll();

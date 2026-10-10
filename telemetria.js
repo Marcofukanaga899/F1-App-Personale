@@ -7,6 +7,7 @@ const OPENF1 = 'https://api.openf1.org/v1';
 const tlmCache = new Map();
 let tlmKind = 'quali';
 let tlmRace = null;
+let tlmPending = false;
 let tlmData = null;
 const tlmSleep = ms => new Promise(r => setTimeout(r, ms));
 const TYRES = { SOFT:['S','#E10600','#fff'], MEDIUM:['M','#FFD12E','#15151E'], HARD:['H','#EDEDED','#15151E'], INTERMEDIATE:['I','#1CB854','#fff'], WET:['W','#0A7EC2','#fff'] };
@@ -93,6 +94,8 @@ function tlmRender(data, kind){
 async function loadTelemetry(race, kind){
   tlmRace = race; kind = kind || tlmKind;
   const el = document.getElementById('tlmList'); if(!el) return;
+  if(typeof paneActive === 'function' && !paneActive('pane-tlm')){ tlmPending = true; el.innerHTML = emptyState('Apri questa tab per caricare i dati dei giri.'); return; }
+  tlmPending = false;
   const forRound = race.round, key = `${race.season}-${race.round}-${kind}`;
   el.innerHTML = emptyState('Caricamento dati giri…');
   try{
@@ -102,7 +105,7 @@ async function loadTelemetry(race, kind){
   } catch(err){
     if(forRound === displayedRound) el.innerHTML = emptyState('Dati giri non disponibili al momento.');
   }
-  recalcAccordionHeight('acc-giri');
+  recalcAccordionHeight('acc-sessione');
 }
 document.querySelectorAll('#tlmTabs .tab').forEach(tab => tab.addEventListener('click', () => {
   document.querySelectorAll('#tlmTabs .tab').forEach(t => t.classList.remove('active'));
@@ -141,5 +144,12 @@ document.getElementById('tlmList').addEventListener('click', e => {
   const open = card.nextElementSibling?.classList.contains('lap-table');
   if(open) card.nextElementSibling.remove(); else card.insertAdjacentHTML('afterend', lapTableHTML(tlmData, card.dataset.dn));
   card.classList.toggle('open', !open);
-  recalcAccordionHeight('acc-giri');
+  recalcAccordionHeight('acc-sessione');
 });
+
+// i dati dei giri si caricano solo quando la tab è visibile (risparmia richieste a OpenF1)
+document.addEventListener('pane-shown', () => { if(tlmPending && tlmRace && paneActive('pane-tlm')) loadTelemetry(tlmRace); });
+
+// se il calendario è arrivato prima di questo script, recupera il GP già mostrato
+(function(){ try{ if(typeof seasonRaces !== 'undefined' && seasonRaces.length && displayedRound && !tlmRace){
+  const r = seasonRaces.find(x => x.round == displayedRound); if(r) loadTelemetry(r); } }catch(e){} })();

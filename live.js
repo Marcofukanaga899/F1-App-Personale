@@ -7,9 +7,16 @@ const LIVE_KEY = 'paddock_live_url';
 const live = { base:null, round:null, timer:null, kind:'drivers' };
 // accetta anche indirizzi incollati per intero (es. .../api/status): tiene solo la parte iniziale
 const liveUrl = () => { try{ return (localStorage.getItem(LIVE_KEY) || '').trim().replace(/\/api(\/.*)?$/i, '').replace(/\/+$/, ''); }catch(e){ return ''; } };
-const liveIsOpen = () => document.getElementById('acc-live').closest('.accordion-item').classList.contains('open');
 const liveStatus = (dot, txt) => { document.getElementById('liveStatus').innerHTML = `<span class="live-dot" style="background:${dot}"></span>${txt}`; };
 const titleCase = t => (t || '').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+const niceCase = s => s === s.toUpperCase() ? titleCase(s) : s;
+// nome breve ("M. Verstappen") anche se il flusso manda solo FullName o BroadcastName
+function liveName(l){
+  if(l.FirstName && l.LastName) return `${l.FirstName[0]}. ${niceCase(l.LastName)}`;
+  const full = (l.FullName || l.BroadcastName || '').trim().split(/\s+/);
+  if(full.length > 1) return `${full[0][0].toUpperCase()}. ${niceCase(full.slice(1).join(' '))}`;
+  return l.Tla || '—';
+}
 
 async function liveGet(path){
   const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 5000);
@@ -41,7 +48,7 @@ function liveRender(list){
     el.innerHTML = r.teams.map((x, i) => mndRow(i + 1, r.startT.indexOf(x.name) - i, x.color,
       TEAM_CODES[x.name] || x.name.slice(0,3).toUpperCase(), x.name, 'Costruttori', x.total, x.gain)).join('');
   }
-  recalcAccordionHeight('acc-live');
+  recalcAccordionHeight('acc-mondiale');
 }
 
 async function livePoll(){
@@ -53,7 +60,7 @@ async function livePoll(){
     if(live.round !== mnd.race.round){ live.base = await loadBaseline(mnd.race); live.round = mnd.race.round; }
     const list = Object.values(sd.Lines || {}).filter(l => l.Tla && l.Position).map(l => {
       const team = live.base.team[l.Tla] || titleCase(l.TeamName);
-      return { code:l.Tla, pos:+l.Position, retired:!!l.Retired, name:`${(l.FirstName || '?')[0]}. ${l.LastName || l.Tla}`,
+      return { code:l.Tla, pos:+l.Position, retired:!!l.Retired, name:liveName(l),
         team, color:TEAM_COLORS[team] || '#' + (l.TeamColour || 'CCCCCC') };
     });
     const type = sess.Session?.Type || '', lap = lc.LapCount || {};
@@ -69,8 +76,9 @@ async function livePoll(){
 }
 
 function liveSchedule(){
-  clearInterval(live.timer); live.timer = null;
-  if(liveIsOpen()){ livePoll(); live.timer = setInterval(() => { if(!document.hidden) livePoll(); }, 4000); }
+  const on = paneActive('pane-live');
+  if(on && !live.timer){ livePoll(); live.timer = setInterval(() => { if(!document.hidden) livePoll(); }, 4000); }
+  else if(!on && live.timer){ clearInterval(live.timer); live.timer = null; }
 }
 document.getElementById('liveUrlInput').value = liveUrl();
 document.getElementById('liveSaveBtn').addEventListener('click', () => {
@@ -79,7 +87,7 @@ document.getElementById('liveSaveBtn').addEventListener('click', () => {
   try{ localStorage.setItem(LIVE_KEY, u); }catch(e){}
   document.getElementById('liveUrlInput').value = liveUrl(); live.round = null; livePoll();
 });
-document.querySelector('[data-acc="live"]').addEventListener('click', liveSchedule);
+document.addEventListener('pane-shown', liveSchedule);
 document.querySelectorAll('#liveTabs .tab').forEach(tab => tab.addEventListener('click', () => {
   document.querySelectorAll('#liveTabs .tab').forEach(t => t.classList.remove('active'));
   tab.classList.add('active'); live.kind = tab.dataset.lk; livePoll();

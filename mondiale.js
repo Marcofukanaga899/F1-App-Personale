@@ -118,12 +118,14 @@ function setMondialeRace(race){
   mnd.race = race; mnd.data = null;
   document.getElementById('mndSlider').innerHTML = '';
   document.getElementById('mndList').innerHTML = emptyState('Apri la sezione per caricare la gara.');
-  if(document.getElementById('acc-mondiale').closest('.accordion-item').classList.contains('open')) loadMondiale();
+  if(paneActive('pane-mnd')) loadMondiale();
 }
-document.querySelector('[data-acc="mondiale"]').addEventListener('click', () => {
-  if(document.getElementById('acc-mondiale').closest('.accordion-item').classList.contains('open')) loadMondiale();
-});
+document.addEventListener('pane-shown', () => { if(paneActive('pane-mnd')) loadMondiale(); });
 document.querySelectorAll('#mndTabs .tab').forEach(tab => tab.addEventListener('click', () => {
   document.querySelectorAll('#mndTabs .tab').forEach(t => t.classList.remove('active'));
   tab.classList.add('active'); mnd.kind = tab.dataset.mk; renderMondiale(false);
 }));
+
+// se il calendario è arrivato prima di questo script, recupera il GP già mostrato
+(function(){ try{ if(typeof seasonRaces !== 'undefined' && seasonRaces.length && displayedRound && !mnd.race){
+  const r = seasonRaces.find(x => x.round == displayedRound); if(r) setMondialeRace(r); } }catch(e){} })();

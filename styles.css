@@ -141,3 +141,9 @@
   .live-cfg button{padding:9px 14px; border-radius:8px; border:none; background:var(--red); color:#fff; font-family:inherit; font-weight:700; font-size:12.5px; cursor:pointer;}
   .live-status{display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text-2); margin:10px 0;}
   .live-dot{width:9px; height:9px; border-radius:50%; flex:0 0 auto;}
+  /* Tab interne di Sessione e Mondiale */
+  .pane{display:none;}
+  .pane.active{display:block;}
+  .main-tabs{background:none; border-bottom:1px solid var(--border); border-radius:0; padding:0; gap:0; margin-bottom:12px;}
+  .main-tabs .tab{border-radius:0; border-bottom:3px solid transparent; background:none; margin-bottom:-1px; font-size:13px;}
+  .main-tabs .tab.active{background:none; color:var(--text); border-bottom-color:var(--red);}

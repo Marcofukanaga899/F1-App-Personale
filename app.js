@@ -312,7 +312,7 @@ function handleStarClick(e){
   const key = btn.dataset.fav === 'drivers' ? 'paddock_fav_drivers' : 'paddock_fav_teams';
   toggleFav(key, btn.dataset.name);
   if(btn.dataset.fav === 'drivers') fillDrivers(); else fillTeams();
-  recalcAccordionHeight('acc-classifica');
+  recalcAccordionHeight('acc-mondiale');
 }
 
 document.querySelectorAll('#tabsBox .tab').forEach(tab=>{
@@ -322,7 +322,7 @@ document.querySelectorAll('#tabsBox .tab').forEach(tab=>{
     const isDrivers = tab.dataset.tab === 'drivers';
     document.getElementById('driversList').style.display = isDrivers ? 'flex' : 'none';
     document.getElementById('teamsList').style.display = isDrivers ? 'none' : 'flex';
-    recalcAccordionHeight('acc-classifica');
+    recalcAccordionHeight('acc-mondiale');
   });
 });
 
@@ -331,7 +331,7 @@ document.getElementById('refreshBtn').addEventListener('click', async ()=>{
   btn.innerHTML = '<span class="dot"></span>Aggiornamento…';
   await loadStandings();
   btn.innerHTML = '<span class="dot"></span>Aggiornato ✓';
-  recalcAccordionHeight('acc-classifica');
+  recalcAccordionHeight('acc-mondiale');
   setTimeout(()=>{ btn.innerHTML = '<span class="dot"></span>Aggiorna classifica'; }, 1400);
 });
 
@@ -579,7 +579,7 @@ async function loadSessionResults(race){
   } catch(err){
     if(forRound === displayedRound) rEl.innerHTML = emptyState('Dati non disponibili al momento.');
   }
-  recalcAccordionHeight('acc-sessioni');
+  recalcAccordionHeight('acc-sessione');
 }
 
 document.querySelectorAll('#sessionTabsBox .tab').forEach(tab=>{
@@ -589,7 +589,7 @@ document.querySelectorAll('#sessionTabsBox .tab').forEach(tab=>{
     const isQuali = tab.dataset.stab === 'quali';
     document.getElementById('qualiList').style.display = isQuali ? 'flex' : 'none';
     document.getElementById('raceResList').style.display = isQuali ? 'none' : 'flex';
-    recalcAccordionHeight('acc-sessioni');
+    recalcAccordionHeight('acc-sessione');
   });
 });
 
@@ -604,8 +604,7 @@ document.getElementById('sessionRefreshBtn').addEventListener('click', async ()=
 // auto-refresh ogni 30s, ma solo mentre la sezione è effettivamente aperta
 // (per non tempestare inutilmente un'API gratuita mantenuta da volontari)
 setInterval(()=>{
-  const item = document.getElementById('acc-sessioni')?.closest('.accordion-item');
-  if(item && item.classList.contains('open') && currentSessionRace){
+  if(typeof paneActive === 'function' && paneActive('pane-res') && currentSessionRace){
     loadSessionResults(currentSessionRace);
   }
 }, 30000);

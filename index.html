@@ -54,11 +54,13 @@
   </div>
 
   <div class="accordion-item">
-    <button class="accordion-header" data-acc="sessioni">
-      <div class="section-title"><div class="bar"></div>Classifiche sessione</div>
+    <button class="accordion-header" data-acc="sessione">
+      <div class="section-title"><div class="bar"></div>Sessione</div>
       <span class="chevron">⌄</span>
     </button>
-    <div class="accordion-body" id="acc-sessioni"><div class="accordion-body-inner">
+    <div class="accordion-body" id="acc-sessione"><div class="accordion-body-inner">
+    <div class="tabs main-tabs"><div class="tab active" data-pane="pane-res">Risultati</div><div class="tab" data-pane="pane-tlm">Giri &amp; settori</div><div class="tab" data-pane="pane-lss">Live</div></div>
+<div class="pane active" id="pane-res">
 
     <div class="tabs" id="sessionTabsBox">
       <div class="tab active" data-stab="quali">Qualifiche</div>
@@ -69,79 +71,35 @@
     <div class="rank-list" id="qualiList"></div>
     <div class="rank-list" id="raceResList" style="display:none;"></div>
 
-    </div></div>
-  </div>
-
-  <div class="accordion-item">
-    <button class="accordion-header" data-acc="giri">
-      <div class="section-title"><div class="bar"></div>Giri &amp; settori</div>
-      <span class="chevron">⌄</span>
-    </button>
-    <div class="accordion-body" id="acc-giri"><div class="accordion-body-inner">
+    </div>
+<div class="pane" id="pane-tlm">
     <div class="tabs" id="tlmTabs">
       <div class="tab active" data-tk="quali">Qualifiche</div>
       <div class="tab" data-tk="race">Gara</div>
     </div>
     <div class="rank-list" id="tlmList"></div>
     <div style="font-size:10px; color:var(--text-2); margin-top:10px;"><span style="color:var(--purple)">■</span> miglior settore assoluto &nbsp; <span style="color:#1CB854">■</span> miglior settore personale &nbsp;·&nbsp; tocca un pilota per vedere tutti i suoi giri &nbsp;·&nbsp; dati OpenF1</div>
-    </div></div>
-  </div>
-
-  <div class="accordion-item">
-    <button class="accordion-header" data-acc="live">
-      <div class="section-title"><div class="bar"></div>Mondiale LIVE</div>
-      <span class="chevron">⌄</span>
-    </button>
-    <div class="accordion-body" id="acc-live"><div class="accordion-body-inner">
-    <div class="live-cfg"><input id="liveUrlInput" type="url" placeholder="https://nome-pc.xxxx.ts.net" autocomplete="off" autocapitalize="off"><button id="liveSaveBtn">Salva</button></div>
-    <div id="liveStatus" class="live-status"></div>
-    <div class="tabs" id="liveTabs">
-      <div class="tab active" data-lk="drivers">Piloti</div>
-      <div class="tab" data-lk="teams">Costruttori</div>
     </div>
-    <div class="rank-list" id="liveList"></div>
-    <div style="font-size:10px; color:var(--text-2); margin-top:10px;">Serve il server acceso sul PC e Tailscale attivo sul telefono. Punti = classifica prima del GP + posizione attuale; i ritirati non fanno punti. ▲▼ rispetto a prima del GP.</div>
-    </div></div>
-  </div>
-
-  <div class="accordion-item">
-    <button class="accordion-header" data-acc="lss">
-      <div class="section-title"><div class="bar"></div>Sessione LIVE</div>
-      <span class="chevron">⌄</span>
-    </button>
-    <div class="accordion-body" id="acc-lss"><div class="accordion-body-inner">
+<div class="pane" id="pane-lss">
     <div id="lssStatus" class="live-status"></div>
     <div class="tabs" id="lssTabs">
       <div class="tab active" data-sk="order">Classifica</div>
       <div class="tab" data-sk="sectors">Settori</div>
     </div>
     <div class="rank-list" id="lssList"></div>
-    <div style="font-size:10px; color:var(--text-2); margin-top:10px;"><span style="color:var(--purple)">■</span> miglior tempo assoluto &nbsp; <span style="color:#1CB854">■</span> miglior tempo personale &nbsp;·&nbsp; usa l'indirizzo impostato in Mondiale LIVE. Funziona in prove, qualifiche, Sprint e gara.</div>
-    </div></div>
-  </div>
-
-  <div class="accordion-item">
-    <button class="accordion-header" data-acc="mondiale">
-      <div class="section-title"><div class="bar"></div>Mondiale in gara</div>
-      <span class="chevron">⌄</span>
-    </button>
-    <div class="accordion-body" id="acc-mondiale"><div class="accordion-body-inner">
-    <div class="tabs" id="mndTabs">
-      <div class="tab active" data-mk="drivers">Piloti</div>
-      <div class="tab" data-mk="teams">Costruttori</div>
+    <div style="font-size:10px; color:var(--text-2); margin-top:10px;"><span style="color:var(--purple)">■</span> miglior tempo assoluto &nbsp; <span style="color:#1CB854">■</span> miglior tempo personale &nbsp;·&nbsp; usa l'indirizzo impostato in Mondiale, tab Live. Funziona in prove, qualifiche, Sprint e gara.</div>
     </div>
-    <div id="mndSlider"></div>
-    <div class="rank-list" id="mndList"></div>
-    <div style="font-size:10px; color:var(--text-2); margin-top:10px;">Muovi lo slider per rivedere il mondiale giro per giro. Punti stimati dalle posizioni in pista (+ Sprint); ultimo giro = classifica ufficiale. ▲▼ = posti guadagnati/persi rispetto a prima del GP.</div>
     </div></div>
   </div>
 
   <div class="accordion-item open">
-    <button class="accordion-header" data-acc="classifica">
-      <div class="section-title"><div class="bar"></div>Classifica</div>
+    <button class="accordion-header" data-acc="mondiale">
+      <div class="section-title"><div class="bar"></div>Mondiale</div>
       <span class="chevron">⌄</span>
     </button>
-    <div class="accordion-body" id="acc-classifica"><div class="accordion-body-inner">
+    <div class="accordion-body" id="acc-mondiale"><div class="accordion-body-inner">
+    <div class="tabs main-tabs"><div class="tab active" data-pane="pane-cls">Ufficiale</div><div class="tab" data-pane="pane-mnd">Replay gara</div><div class="tab" data-pane="pane-live">Live</div></div>
+<div class="pane active" id="pane-cls">
 
     <div class="tabs" id="tabsBox">
       <div class="tab active" data-tab="drivers">Piloti</div>
@@ -152,6 +110,26 @@
     <div class="rank-list" id="driversList"></div>
     <div class="rank-list" id="teamsList" style="display:none;"></div>
 
+    </div>
+<div class="pane" id="pane-mnd">
+    <div class="tabs" id="mndTabs">
+      <div class="tab active" data-mk="drivers">Piloti</div>
+      <div class="tab" data-mk="teams">Costruttori</div>
+    </div>
+    <div id="mndSlider"></div>
+    <div class="rank-list" id="mndList"></div>
+    <div style="font-size:10px; color:var(--text-2); margin-top:10px;">Muovi lo slider per rivedere il mondiale giro per giro. Punti stimati dalle posizioni in pista (+ Sprint); ultimo giro = classifica ufficiale. ▲▼ = posti guadagnati/persi rispetto a prima del GP.</div>
+    </div>
+<div class="pane" id="pane-live">
+    <div class="live-cfg"><input id="liveUrlInput" type="url" placeholder="https://nome-pc.xxxx.ts.net" autocomplete="off" autocapitalize="off"><button id="liveSaveBtn">Salva</button></div>
+    <div id="liveStatus" class="live-status"></div>
+    <div class="tabs" id="liveTabs">
+      <div class="tab active" data-lk="drivers">Piloti</div>
+      <div class="tab" data-lk="teams">Costruttori</div>
+    </div>
+    <div class="rank-list" id="liveList"></div>
+    <div style="font-size:10px; color:var(--text-2); margin-top:10px;">Serve il server acceso sul PC e Tailscale attivo sul telefono. Punti = classifica prima del GP + posizione attuale; i ritirati non fanno punti. ▲▼ rispetto a prima del GP.</div>
+    </div>
     </div></div>
   </div>
 
@@ -180,6 +158,7 @@
 </main>
 
 <script src="circuits-data.js"></script>
+<script src="tabs.js"></script>
 <script src="app.js"></script>
 <script src="telemetria.js"></script>
 <script src="mondiale.js"></script>
