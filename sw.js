@@ -1,4 +1,4 @@
-const CACHE_NAME = 'paddock-shell-v9';
+const CACHE_NAME = 'paddock-shell-v10';
 const SHELL_FILES = [
   './',
   './index.html',
@@ -12,8 +12,8 @@ const SHELL_FILES = [
   './live.js',
   './live-sessione.js',
   './manifest.json',
-  './icon-192.png',
-  './icon-512.png'
+  './icon-v2-192.png',
+  './icon-v2-512.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -54,8 +54,8 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification(data.title, {
       body: data.body,
-      icon: 'icon-192.png',
-      badge: 'icon-192.png'
+      icon: 'icon-v2-192.png',
+      badge: 'icon-v2-192.png'
     })
   );
 });
