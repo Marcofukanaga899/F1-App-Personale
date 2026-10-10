@@ -100,6 +100,7 @@ async function loadStandings(){
         num: ds.Driver.permanentNumber || '—',
         name: (ds.Driver.givenName?.[0] || '') + '. ' + ds.Driver.familyName,
         driverId: ds.Driver.driverId,
+        code: ds.Driver.code,
         team,
         color: TEAM_COLORS[team] || '#CCCCCC',
         pts: Number(ds.points),
@@ -140,7 +141,7 @@ function driverRowHTML(d, isFav, leaderPts){
     <div class="rank-row" style="border-left:4px solid ${d.color}">
       <button class="star-btn${isFav?' on':''}" data-fav="drivers" data-name="${d.name}">${isFav?'★':'☆'}</button>
       ${posBadgeHTML(d.pos)}
-      <div class="team-badge" style="background:${d.color}"><span style="color:${contrastText(d.color)}">${TEAM_CODES[d.team]||'—'}</span></div>
+      ${drvBadge(d.code, d.color, TEAM_CODES[d.team]||'—')}
       <div class="rank-info">
         <div class="rank-name"><span class="num-badge" style="background:${d.color}; color:${contrastText(d.color)}; border:1px solid rgba(0,0,0,.12)">${d.num}</span>${d.name}</div>
         <div class="rank-team">${d.team}</div>
@@ -284,12 +285,12 @@ async function renderCompare(){
     el.innerHTML = `
       <div class="compare-cards">
         <div class="compare-card">
-          <div class="team-badge" style="background:${a.color}; margin:0 auto 6px;"><span style="color:${contrastText(a.color)}">${TEAM_CODES[a.team]||'—'}</span></div>
+          <div class="cmp-photo">${drvBadge(a.code, a.color, TEAM_CODES[a.team]||'—')}</div>
           <div class="compare-name">${a.name}</div>
           <div class="compare-pts">${totalA}</div>
         </div>
         <div class="compare-card">
-          <div class="team-badge" style="background:${b.color}; margin:0 auto 6px;"><span style="color:${contrastText(b.color)}">${TEAM_CODES[b.team]||'—'}</span></div>
+          <div class="cmp-photo">${drvBadge(b.code, b.color, TEAM_CODES[b.team]||'—')}</div>
           <div class="compare-name">${b.name}</div>
           <div class="compare-pts">${totalB}</div>
         </div>
@@ -496,12 +497,12 @@ async function renderCircuitPanel(race){
 let currentSessionRace = null;
 let sessionAutoRefreshTimer = null;
 
-function sessionRowHTML(pos, name, team, num, valueLabel){
+function sessionRowHTML(pos, name, team, num, valueLabel, code){
   const color = TEAM_COLORS[team] || '#CCCCCC';
   return `
     <div class="rank-row">
       ${posBadgeHTML(pos)}
-      <div class="team-badge" style="background:${color}"><span style="color:${contrastText(color)}">${TEAM_CODES[team]||'—'}</span></div>
+      ${drvBadge(code, color, TEAM_CODES[team]||'—')}
       <div class="rank-info">
         <div class="rank-name"><span class="num-badge" style="background:${color}; color:${contrastText(color)}; border:1px solid rgba(0,0,0,.12)">${num}</span>${name}</div>
         <div class="rank-team">${team}</div>
@@ -524,7 +525,7 @@ function qualifyingCardHTML(q){
     <div class="quali-card"${eliminatedIn ? ' style="opacity:.55"' : ''}>
       <div class="quali-head">
         ${posBadgeHTML(q.position)}
-        <div class="team-badge" style="background:${color}"><span style="color:${contrastText(color)}">${TEAM_CODES[team]||'—'}</span></div>
+        ${drvBadge(q.Driver.code, color, TEAM_CODES[team]||'—')}
         <div class="rank-info"><div class="rank-name"><span class="num-badge" style="background:${color}; color:${contrastText(color)}; border:1px solid rgba(0,0,0,.12)">${num}</span>${name}</div></div>
         ${eliminatedIn ? `<div class="quali-elim">Eliminato in ${eliminatedIn}</div>` : ''}
       </div>
@@ -571,7 +572,7 @@ async function loadSessionResults(race){
         } else {
           value = r.status; // es. "Retired", "Accident", "+1 Lap" ecc.
         }
-        return sessionRowHTML(r.position, `${r.Driver.givenName[0]}. ${r.Driver.familyName}`, team, r.Driver.permanentNumber || r.number, value);
+        return sessionRowHTML(r.position, `${r.Driver.givenName[0]}. ${r.Driver.familyName}`, team, r.Driver.permanentNumber || r.number, value, r.Driver.code);
       }).join('');
     } else {
       rEl.innerHTML = emptyState('Gara non ancora disputata o risultato non ancora pubblicato.');

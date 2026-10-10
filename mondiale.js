@@ -73,10 +73,10 @@ function mndStandings(lap){
   return { drivers: sort(pl), teams: sort(tl) };
 }
 
-function mndRow(rank, moved, color, badge, name, sub, total, gain){
+function mndRow(rank, moved, color, badge, name, sub, total, gain, drv){
   const mv = moved > 0 ? `<span style="color:#1CB854">▲${moved}</span>` : moved < 0 ? `<span style="color:var(--red)">▼${-moved}</span>` : '';
   return `<div class="rank-row">${posBadgeHTML(rank)}
-    <div class="team-badge" style="background:${color}"><span style="color:${contrastText(color)}">${badge}</span></div>
+    ${drvBadge(drv, color, badge)}
     <div class="rank-info"><div class="rank-name">${name}</div><div class="rank-team">${sub}</div></div>
     <div class="rank-right"><div class="rank-pts mono">${total}</div>
     <div class="rank-gap">${gain ? '+' + gain + ' ' : ''}${mv}</div></div></div>`;
@@ -96,7 +96,7 @@ function renderMondiale(full){
   const startRank = {}; start[key].forEach((x, i) => startRank[id(x)] = i + 1);
   el.innerHTML = now[key].map((x, i) => {
     const moved = startRank[id(x)] - (i + 1);
-    return key === 'drivers' ? mndRow(i + 1, moved, x.x.color, x.x.code, x.x.name, x.x.team, x.total, x.gain)
+    return key === 'drivers' ? mndRow(i + 1, moved, x.x.color, x.x.code, x.x.name, x.x.team, x.total, x.gain, x.x.code)
                              : mndRow(i + 1, moved, x.color, TEAM_CODES[x.name] || x.name.slice(0,3).toUpperCase(), x.name, 'Costruttori', x.total, x.gain);
   }).join('');
   recalcAccordionHeight('acc-mondiale');

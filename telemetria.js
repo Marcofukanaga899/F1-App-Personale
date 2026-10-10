@@ -75,7 +75,7 @@ function tlmRowHTML(r, pos, leader, bestSec, kind){
     <div class="quali-card tlm-card" data-dn="${d.driver_number}">
       <div class="quali-head">
         ${posBadgeHTML(pos)}
-        <div class="team-badge" style="background:${color}"><span style="color:${contrastText(color)}">${d.name_acronym || '—'}</span></div>
+        ${drvBadge(d.name_acronym, color, d.name_acronym || '—')}
         <div class="rank-info"><div class="rank-name"><span class="num-badge" style="background:${color}; color:${contrastText(color)}; border:1px solid rgba(0,0,0,.12)">${d.driver_number}</span>${name}</div></div>
         <div class="rank-right"><div class="rank-pts mono" style="font-size:15px">${fmtLap(r.best)}</div><div class="rank-gap">${pos === 1 ? 'miglior giro' : '+' + (r.best - leader).toFixed(3)}</div></div>
       </div>

@@ -1,9 +1,10 @@
-const CACHE_NAME = 'paddock-shell-v8';
+const CACHE_NAME = 'paddock-shell-v9';
 const SHELL_FILES = [
   './',
   './index.html',
   './styles.css',
   './tabs.js',
+  './foto.js',
   './app.js',
   './circuits-data.js',
   './telemetria.js',

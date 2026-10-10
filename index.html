@@ -59,7 +59,7 @@
       <span class="chevron">⌄</span>
     </button>
     <div class="accordion-body" id="acc-sessione"><div class="accordion-body-inner">
-    <div class="tabs main-tabs"><div class="tab active" data-pane="pane-res">Risultati</div><div class="tab" data-pane="pane-tlm">Giri &amp; settori</div><div class="tab" data-pane="pane-lss">Live</div></div>
+    <div class="tabs main-tabs"><div class="tab active" data-pane="pane-res">Qualifica &amp; Gara</div><div class="tab" data-pane="pane-tlm">Giri &amp; settori</div><div class="tab" data-pane="pane-lss">Live</div></div>
 <div class="pane active" id="pane-res">
 
     <div class="tabs" id="sessionTabsBox">
@@ -96,7 +96,7 @@
       <span class="chevron">⌄</span>
     </button>
     <div class="accordion-body" id="acc-mondiale"><div class="accordion-body-inner">
-    <div class="tabs main-tabs"><div class="tab active" data-pane="pane-cls">Ufficiale</div><div class="tab" data-pane="pane-mnd">Replay gara</div><div class="tab" data-pane="pane-live">Live</div></div>
+    <div class="tabs main-tabs"><div class="tab active" data-pane="pane-cls">Classifica</div><div class="tab" data-pane="pane-mnd">Replay gara</div><div class="tab" data-pane="pane-live">Live</div></div>
 <div class="pane active" id="pane-cls">
 
     <div class="tabs" id="tabsBox">
@@ -116,7 +116,7 @@
     </div>
     <div id="mndSlider"></div>
     <div class="rank-list" id="mndList"></div>
-    <div style="font-size:10px; color:var(--text-2); margin-top:10px;">Muovi lo slider per rivedere il mondiale giro per giro. Punti stimati dalle posizioni in pista (+ Sprint); ultimo giro = classifica ufficiale. ▲▼ = posti guadagnati/persi rispetto a prima del GP.</div>
+    <div style="font-size:10px; color:var(--text-2); margin-top:10px;"><b>Replay:</b> scegli un GP già corso (barra dei round) e trascina lo slider: vedi come cambiava il mondiale giro per giro in base alle posizioni in pista. Muovi lo slider per rivedere il mondiale giro per giro. Punti stimati dalle posizioni in pista (+ Sprint); ultimo giro = classifica ufficiale. ▲▼ = posti guadagnati/persi rispetto a prima del GP.</div>
     </div>
 <div class="pane" id="pane-live">
     <div class="live-cfg"><input id="liveUrlInput" type="url" placeholder="https://nome-pc.xxxx.ts.net" autocomplete="off" autocapitalize="off"><button id="liveSaveBtn">Salva</button></div>
@@ -157,6 +157,7 @@
 
 <script src="circuits-data.js"></script>
 <script src="tabs.js"></script>
+<script src="foto.js"></script>
 <script src="app.js"></script>
 <script src="telemetria.js"></script>
 <script src="mondiale.js"></script>

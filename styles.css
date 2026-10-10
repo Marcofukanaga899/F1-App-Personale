@@ -160,3 +160,10 @@
   .rc-meta{font-size:10px; color:var(--text-2); font-weight:400;}
   .wx-row{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;}
   .wx-chip{background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:5px 10px; font-size:12.5px; display:flex; flex-direction:column;}
+
+/* foto piloti: cerchio col colore del team, foto sopra; se manca resta la sigla */
+.team-badge.drv{overflow:hidden; width:40px; height:40px; border:2px solid rgba(0,0,0,.12);}
+.team-badge.drv img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:top center; z-index:1;}
+.team-badge.drv.has-photo > span{visibility:hidden;}
+.cmp-photo{display:flex; justify-content:center; margin-bottom:6px;}
+.cmp-photo .team-badge.drv{width:64px; height:64px;}

@@ -43,7 +43,7 @@ function liveRender(list){
   const r = liveStandings(list, live.base), el = document.getElementById('liveList');
   if(live.kind === 'drivers'){
     el.innerHTML = r.drivers.map((x, i) => mndRow(i + 1, r.startD.indexOf(x.code) - i, x.color, x.code, x.name,
-      x.retired ? 'Ritirato' : (x.pos ? 'P' + x.pos + ' in pista' : x.team), x.total, x.gain)).join('');
+      x.retired ? 'Ritirato' : (x.pos ? 'P' + x.pos + ' in pista' : x.team), x.total, x.gain, x.code)).join('');
   } else {
     el.innerHTML = r.teams.map((x, i) => mndRow(i + 1, r.startT.indexOf(x.name) - i, x.color,
       TEAM_CODES[x.name] || x.name.slice(0,3).toUpperCase(), x.name, 'Costruttori', x.total, x.gain)).join('');

@@ -21,10 +21,8 @@ function lsTyre(stints){
   return `<span class="tyre" style="background:${t[1]};color:${t[2]}">${t[0]}${laps ? `<small>${laps}</small>` : ''}</span>`;
 }
 function lsAvatar(l, c){
-  const badge = `<div class="team-badge" style="background:${c}"><span style="color:${contrastText(c)}">${esc(l.Tla)}</span></div>`;
-  if(!l.HeadshotUrl) return badge;
-  // se la foto non si carica (blocco, link cambiato) torna il badge con la sigla
-  return `<div class="avatar" style="border-color:${c}"><img src="${esc(l.HeadshotUrl)}" alt="${esc(l.Tla)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()"><span class="avatar-fb" style="background:${c};color:${contrastText(c)}">${esc(l.Tla)}</span></div>`;
+  if(l.HeadshotUrl) photoSet(l.Tla, l.HeadshotUrl);   // la foto del flusso live vale come quella di OpenF1
+  return drvBadge(l.Tla, c, esc(l.Tla));
 }
 function lsRowHTML(l, i, isRace, tyres){
   const pos = +l.Position || i + 1, c = lcolor(l), out = l.Retired || l.Stopped;
