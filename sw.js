@@ -1,10 +1,14 @@
-const CACHE_NAME = 'paddock-shell-v1';
+const CACHE_NAME = 'paddock-shell-v5';
 const SHELL_FILES = [
   './',
   './index.html',
   './styles.css',
   './app.js',
   './circuits-data.js',
+  './telemetria.js',
+  './mondiale.js',
+  './live.js',
+  './live-sessione.js',
   './manifest.json',
   './icon-192.png',
   './icon-512.png'

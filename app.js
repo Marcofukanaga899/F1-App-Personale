@@ -484,6 +484,8 @@ async function renderCircuitPanel(race){
   loadWeather(race.Circuit.Location.lat, race.Circuit.Location.long, sessions, race.round);
   loadCircuitRecord(circuitId, race.season, race.round);
   loadSessionResults(race);
+  if(typeof loadTelemetry === 'function') loadTelemetry(race);
+  if(typeof setMondialeRace === 'function') setMondialeRace(race);
 }
 
 // ============================================================

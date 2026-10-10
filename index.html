@@ -72,6 +72,70 @@
     </div></div>
   </div>
 
+  <div class="accordion-item">
+    <button class="accordion-header" data-acc="giri">
+      <div class="section-title"><div class="bar"></div>Giri &amp; settori</div>
+      <span class="chevron">⌄</span>
+    </button>
+    <div class="accordion-body" id="acc-giri"><div class="accordion-body-inner">
+    <div class="tabs" id="tlmTabs">
+      <div class="tab active" data-tk="quali">Qualifiche</div>
+      <div class="tab" data-tk="race">Gara</div>
+    </div>
+    <div class="rank-list" id="tlmList"></div>
+    <div style="font-size:10px; color:var(--text-2); margin-top:10px;"><span style="color:var(--purple)">■</span> miglior settore assoluto &nbsp; <span style="color:#1CB854">■</span> miglior settore personale &nbsp;·&nbsp; tocca un pilota per vedere tutti i suoi giri &nbsp;·&nbsp; dati OpenF1</div>
+    </div></div>
+  </div>
+
+  <div class="accordion-item">
+    <button class="accordion-header" data-acc="live">
+      <div class="section-title"><div class="bar"></div>Mondiale LIVE</div>
+      <span class="chevron">⌄</span>
+    </button>
+    <div class="accordion-body" id="acc-live"><div class="accordion-body-inner">
+    <div class="live-cfg"><input id="liveUrlInput" type="url" placeholder="https://nome-pc.xxxx.ts.net" autocomplete="off" autocapitalize="off"><button id="liveSaveBtn">Salva</button></div>
+    <div id="liveStatus" class="live-status"></div>
+    <div class="tabs" id="liveTabs">
+      <div class="tab active" data-lk="drivers">Piloti</div>
+      <div class="tab" data-lk="teams">Costruttori</div>
+    </div>
+    <div class="rank-list" id="liveList"></div>
+    <div style="font-size:10px; color:var(--text-2); margin-top:10px;">Serve il server acceso sul PC e Tailscale attivo sul telefono. Punti = classifica prima del GP + posizione attuale; i ritirati non fanno punti. ▲▼ rispetto a prima del GP.</div>
+    </div></div>
+  </div>
+
+  <div class="accordion-item">
+    <button class="accordion-header" data-acc="lss">
+      <div class="section-title"><div class="bar"></div>Sessione LIVE</div>
+      <span class="chevron">⌄</span>
+    </button>
+    <div class="accordion-body" id="acc-lss"><div class="accordion-body-inner">
+    <div id="lssStatus" class="live-status"></div>
+    <div class="tabs" id="lssTabs">
+      <div class="tab active" data-sk="order">Classifica</div>
+      <div class="tab" data-sk="sectors">Settori</div>
+    </div>
+    <div class="rank-list" id="lssList"></div>
+    <div style="font-size:10px; color:var(--text-2); margin-top:10px;"><span style="color:var(--purple)">■</span> miglior tempo assoluto &nbsp; <span style="color:#1CB854">■</span> miglior tempo personale &nbsp;·&nbsp; usa l'indirizzo impostato in Mondiale LIVE. Funziona in prove, qualifiche, Sprint e gara.</div>
+    </div></div>
+  </div>
+
+  <div class="accordion-item">
+    <button class="accordion-header" data-acc="mondiale">
+      <div class="section-title"><div class="bar"></div>Mondiale in gara</div>
+      <span class="chevron">⌄</span>
+    </button>
+    <div class="accordion-body" id="acc-mondiale"><div class="accordion-body-inner">
+    <div class="tabs" id="mndTabs">
+      <div class="tab active" data-mk="drivers">Piloti</div>
+      <div class="tab" data-mk="teams">Costruttori</div>
+    </div>
+    <div id="mndSlider"></div>
+    <div class="rank-list" id="mndList"></div>
+    <div style="font-size:10px; color:var(--text-2); margin-top:10px;">Muovi lo slider per rivedere il mondiale giro per giro. Punti stimati dalle posizioni in pista (+ Sprint); ultimo giro = classifica ufficiale. ▲▼ = posti guadagnati/persi rispetto a prima del GP.</div>
+    </div></div>
+  </div>
+
   <div class="accordion-item open">
     <button class="accordion-header" data-acc="classifica">
       <div class="section-title"><div class="bar"></div>Classifica</div>
@@ -117,6 +181,10 @@
 
 <script src="circuits-data.js"></script>
 <script src="app.js"></script>
+<script src="telemetria.js"></script>
+<script src="mondiale.js"></script>
+<script src="live.js"></script>
+<script src="live-sessione.js"></script>
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => navigator.serviceWorker.register('sw.js'));
