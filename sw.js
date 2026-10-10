@@ -1,4 +1,4 @@
-const CACHE_NAME = 'paddock-shell-v7';
+const CACHE_NAME = 'paddock-shell-v8';
 const SHELL_FILES = [
   './',
   './index.html',

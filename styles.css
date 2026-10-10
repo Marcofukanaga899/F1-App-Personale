@@ -147,3 +147,16 @@
   .main-tabs{background:none; border-bottom:1px solid var(--border); border-radius:0; padding:0; gap:0; margin-bottom:12px;}
   .main-tabs .tab{border-radius:0; border-bottom:3px solid transparent; background:none; margin-bottom:-1px; font-size:13px;}
   .main-tabs .tab.active{background:none; color:var(--text); border-bottom-color:var(--red);}
+  /* Tabella live: foto, gomma, direzione gara, meteo */
+  .avatar{position:relative; width:34px; height:34px; border-radius:50%; border:2px solid var(--border); overflow:hidden; flex:0 0 auto; background:var(--surface-2);}
+  .avatar img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:top center; z-index:1; background:var(--surface-2);}
+  .avatar-fb{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'Roboto Mono', monospace; font-weight:800; font-size:9.5px;}
+  .ls-times{flex-wrap:wrap; gap:12px 14px;}
+  .ls-times .tyre{margin-top:2px;}
+  .rc-box{margin-top:14px; border-top:1px solid var(--border); padding-top:10px;}
+  .rc-title{font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-2); margin-bottom:6px;}
+  .rc-row{display:flex; flex-direction:column; gap:1px; padding:6px 9px; margin-bottom:5px; background:var(--surface); border-left:4px solid var(--border); border-radius:6px; font-size:12px;}
+  .rc-row.rc-warn{background:#FFF3F2; font-weight:600;}
+  .rc-meta{font-size:10px; color:var(--text-2); font-weight:400;}
+  .wx-row{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;}
+  .wx-chip{background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:5px 10px; font-size:12.5px; display:flex; flex-direction:column;}

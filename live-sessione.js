@@ -1,35 +1,61 @@
 // ============================================================
-// SESSIONE LIVE — classifica in pista + settori di tutti i piloti
-// (prove, qualifiche, Sprint e gara). Legge lo stesso server live di "Mondiale LIVE".
-// I colori viola/verde sono quelli ufficiali del flusso F1 (OverallFastest / PersonalFastest).
+// SESSIONE LIVE — tabella unica: posizione, foto, gomma, distacco, ultimo giro, S1/S2/S3
+// + messaggi della direzione gara (penalità, bandiere) e meteo.
+// Legge lo stesso server live di "Mondiale > Live". Viola/verde = colori ufficiali del flusso F1.
 // ============================================================
-const lss = { kind:'order', timer:null };
+const lss = { timer:null };
 const lv = x => x == null ? '' : (typeof x === 'object' ? (x.Value ?? '') : x);
-const lcls = x => (x && typeof x === 'object') ? (x.OverallFastest ? 'p' : x.PersonalFastest ? 'g' : 'n') : 'n';
-const lcell = x => `<span class="mono lt-${lcls(x)}">${lv(x) || '—'}</span>`;
+const lcls = x => (x && typeof x === 'object') ? (x.OverallFastest ? 'lt-p' : x.PersonalFastest ? 'lt-g' : '') : '';
 const lcolor = l => '#' + (l.TeamColour || 'CCCCCC');
 const lname = l => liveName(l);
 const lsStatus = (dot, txt) => { document.getElementById('lssStatus').innerHTML = `<span class="live-dot" style="background:${dot}"></span>${txt}`; };
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const arr = x => Array.isArray(x) ? x : (x && typeof x === 'object' ? Object.values(x) : []);
+const sec = (s, i) => s ? (s[i] ?? s[String(i)]) : undefined;
 
-function lsOrderHTML(rows, isRace){
-  return rows.map((l, i) => {
-    const pos = +l.Position || i + 1, c = lcolor(l), out = l.Retired;
-    const main = out ? 'RIT' : isRace ? (pos === 1 ? 'Leader' : lv(l.GapToLeader) || '—') : (lv(l.BestLapTime) || '—');
-    const sub = out ? '' : isRace ? (pos > 1 ? 'int ' + (lv(l.IntervalToPositionAhead) || '—') : '') + (l.InPit ? ' · BOX' : '') : 'ultimo ' + (lv(l.LastLapTime) || '—');
-    return `<div class="rank-row"${out ? ' style="opacity:.55"' : ''}>${posBadgeHTML(pos)}
-      <div class="team-badge" style="background:${c}"><span style="color:${contrastText(c)}">${l.Tla}</span></div>
-      <div class="rank-info"><div class="rank-name">${lname(l)}</div><div class="rank-team">${titleCase(l.TeamName)}</div></div>
-      <div class="rank-right"><div class="rank-pts mono" style="font-size:15px">${main}</div><div class="rank-gap">${sub}</div></div></div>`;
-  }).join('');
+function lsTyre(stints){
+  const st = arr(stints), cur = st[st.length - 1];
+  if(!cur || !cur.Compound) return '';
+  const t = TYRES[String(cur.Compound).toUpperCase()] || ['?', '#CCC', '#15151E'];
+  const laps = (cur.TotalLaps != null ? +cur.TotalLaps : 0) + (cur.StartLaps != null ? +cur.StartLaps : 0);
+  return `<span class="tyre" style="background:${t[1]};color:${t[2]}">${t[0]}${laps ? `<small>${laps}</small>` : ''}</span>`;
 }
-function lsSectorsHTML(rows){
-  const head = '<div class="lt-row lt-head"><span>Pil.</span><span></span><span>S1</span><span>S2</span><span>S3</span><span>Ultimo</span></div>';
-  return `<div class="lap-table" style="border-radius:8px">${head}` + rows.map(l => {
-    const s = l.Sectors || {};
-    return `<div class="lt-row"><span class="mono" style="font-weight:700">${l.Tla}</span>
-      <span style="width:10px;height:10px;border-radius:50%;display:inline-block;background:${lcolor(l)}"></span>
-      ${lcell(s[0] ?? s['0'])}${lcell(s[1] ?? s['1'])}${lcell(s[2] ?? s['2'])}${lcell(l.LastLapTime)}</div>`;
+function lsAvatar(l, c){
+  const badge = `<div class="team-badge" style="background:${c}"><span style="color:${contrastText(c)}">${esc(l.Tla)}</span></div>`;
+  if(!l.HeadshotUrl) return badge;
+  // se la foto non si carica (blocco, link cambiato) torna il badge con la sigla
+  return `<div class="avatar" style="border-color:${c}"><img src="${esc(l.HeadshotUrl)}" alt="${esc(l.Tla)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()"><span class="avatar-fb" style="background:${c};color:${contrastText(c)}">${esc(l.Tla)}</span></div>`;
+}
+function lsRowHTML(l, i, isRace, tyres){
+  const pos = +l.Position || i + 1, c = lcolor(l), out = l.Retired || l.Stopped;
+  const main = out ? 'RIT' : isRace ? (pos === 1 ? 'Leader' : lv(l.GapToLeader) || '—') : (lv(l.BestLapTime) || '—');
+  const sub = out ? '' : isRace ? (pos > 1 ? 'int ' + (lv(l.IntervalToPositionAhead) || '—') : '') + (l.InPit ? ' · BOX' : '') : (l.InPit ? 'BOX' : '');
+  const s = l.Sectors, last = l.LastLapTime;
+  const cells = [0,1,2].map(k => { const v = sec(s, k); return `<div><div class="q-label">S${k + 1}</div><div class="q-time mono ${lcls(v)}">${lv(v) || '—'}</div></div>`; }).join('');
+  return `<div class="quali-card"${out ? ' style="opacity:.55"' : ''}>
+    <div class="quali-head">${posBadgeHTML(pos)}${lsAvatar(l, c)}
+      <div class="rank-info"><div class="rank-name">${esc(lname(l))}</div><div class="rank-team">${esc(titleCase(l.TeamName))}</div></div>
+      <div class="rank-right"><div class="rank-pts mono" style="font-size:15px">${esc(main)}</div><div class="rank-gap">${esc(sub)}</div></div></div>
+    <div class="quali-times ls-times">${tyres ? `<div><div class="q-label">Gomma</div>${lsTyre(tyres.Lines?.[l._n || l.RacingNumber]?.Stints) || '<span class="mono">—</span>'}</div>` : ''}
+      <div><div class="q-label">Ultimo</div><div class="q-time mono ${lcls(last)}">${lv(last) || '—'}</div></div>${cells}
+      ${!isRace && lv(l.BestLapTime) ? `<div><div class="q-label">Migliore</div><div class="q-time mono ${lcls(l.BestLapTime)}">${esc(lv(l.BestLapTime))}</div></div>` : ''}</div></div>`;
+}
+function lsRCHTML(rc){
+  const msgs = arr(rc).filter(m => m && m.Message).sort((a, b) => String(b.Utc).localeCompare(String(a.Utc))).slice(0, 8);
+  if(!msgs.length) return '';
+  const FLAG = { RED:'#E10600', YELLOW:'#F5C400', 'DOUBLE YELLOW':'#F5C400', GREEN:'#1CB854', CLEAR:'#1CB854', BLUE:'#0A7EC2', CHEQUERED:'#15151E', 'BLACK AND WHITE':'#15151E' };
+  return `<div class="rc-box"><div class="rc-title">Direzione gara</div>` + msgs.map(m => {
+    const f = String(m.Flag || '').toUpperCase(), col = FLAG[f] || (m.Category === 'SafetyCar' ? '#F5A623' : 'var(--border)');
+    const warn = /PENALTY|INVESTIGAT|NOTED|DELETED|DISQUALIF|UNSAFE|WARNING/i.test(m.Message);
+    let t = ''; if(m.Utc){ const d = new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(m.Utc) ? m.Utc : m.Utc + 'Z'); if(!isNaN(d)) t = d.toLocaleTimeString('it-IT', { hour:'2-digit', minute:'2-digit' }); }
+    return `<div class="rc-row${warn ? ' rc-warn' : ''}" style="border-left-color:${col}"><span class="rc-meta mono">${t}${m.Lap ? ' · G' + esc(m.Lap) : ''}</span><span>${esc(m.Message)}</span></div>`;
   }).join('') + '</div>';
+}
+function lsWeatherHTML(w){
+  if(!w || (w.TrackTemp == null && w.AirTemp == null)) return '';
+  const chip = (lab, v, u) => v == null || v === '' ? '' : `<div class="wx-chip"><span class="q-label">${lab}</span><b class="mono">${esc(v)}${u}</b></div>`;
+  const rain = w.Rainfall != null && +w.Rainfall > 0;
+  return `<div class="wx-row">${chip('Pista', w.TrackTemp, '°')}${chip('Aria', w.AirTemp, '°')}${chip('Umidità', w.Humidity, '%')}${chip('Vento', w.WindSpeed, ' m/s')}${rain ? '<div class="wx-chip"><b style="color:#0A7EC2">PIOGGIA</b></div>' : ''}</div>`;
 }
 
 async function lsPoll(){
@@ -37,12 +63,16 @@ async function lsPoll(){
   if(!liveUrl()){ lsStatus('#B0B0B8', 'Server non configurato'); el.innerHTML = emptyState('Imposta prima l\'indirizzo del server in Mondiale, tab Live.'); return; }
   try{
     const [sess, lc, sd] = await Promise.all([liveGet('/api/session'), liveGet('/api/lap-count'), liveGet('/api/standings')]);
-    const rows = (sd.Leaderboard || []).map(n => sd.Lines[n]).filter(l => l && l.Tla);
+    // dati opzionali: se uno manca, la tabella funziona lo stesso
+    const [ty, rc, wx] = (await Promise.allSettled([liveGet('/api/tyres'), liveGet('/api/race-control'), liveGet('/api/weather')])).map(r => r.status === 'fulfilled' ? r.value : null);
+    const rows = (sd.Leaderboard || []).map(n => sd.Lines[n] && Object.assign({ _n:String(n) }, sd.Lines[n])).filter(l => l && l.Tla);
+    document.getElementById('lssRC').innerHTML = lsRCHTML(rc && rc.RaceControl);
+    document.getElementById('lssWx').innerHTML = lsWeatherHTML(wx && wx.Weather);
     if(!rows.length){ lsStatus('#F5A623', 'Server collegato, nessuna sessione in corso'); el.innerHTML = emptyState('I dati compaiono quando inizia una sessione.'); return; }
     const type = sess.Session?.Type || '', lap = lc.LapCount || {};
     const isRace = /race|sprint/i.test(type) && !/qualif/i.test(type);
-    lsStatus('#1CB854', `LIVE · ${sess.Session?.Name || type || 'Sessione'}${lap.CurrentLap ? ` · giro ${lap.CurrentLap}/${lap.TotalLaps || '—'}` : ''}`);
-    el.innerHTML = lss.kind === 'order' ? lsOrderHTML(rows, isRace) : lsSectorsHTML(rows);
+    lsStatus('#1CB854', `LIVE · ${esc(sess.Session?.Name || type || 'Sessione')}${lap.CurrentLap ? ` · giro ${lap.CurrentLap}/${lap.TotalLaps || '—'}` : ''}`);
+    el.innerHTML = rows.map((l, i) => lsRowHTML(l, i, isRace, ty)).join('');
     recalcAccordionHeight('acc-sessione');
   } catch(err){
     lsStatus('#E10600', 'Server non raggiungibile');
@@ -55,7 +85,3 @@ function lsSchedule(){
   else if(!on && lss.timer){ clearInterval(lss.timer); lss.timer = null; }
 }
 document.addEventListener('pane-shown', lsSchedule);
-document.querySelectorAll('#lssTabs .tab').forEach(tab => tab.addEventListener('click', () => {
-  document.querySelectorAll('#lssTabs .tab').forEach(t => t.classList.remove('active'));
-  tab.classList.add('active'); lss.kind = tab.dataset.sk; lsPoll();
-}));

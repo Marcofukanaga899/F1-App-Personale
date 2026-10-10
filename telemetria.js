@@ -43,6 +43,8 @@ async function buildTelemetry(race, kind){
   const laps = await of1(`/laps?session_key=${s.session_key}`);
   let stints = [];
   if(kind === 'race'){ await tlmSleep(400); stints = await of1(`/stints?session_key=${s.session_key}`); }
+  let rc = [];  // messaggi direzione gara: se mancano, il resto funziona lo stesso
+  try{ await tlmSleep(400); rc = await of1(`/race_control?session_key=${s.session_key}`); }catch(e){ rc = []; }
   const D = {};
   drivers.forEach(d => D[d.driver_number] = { d, best:null, sec:[null,null,null], top:0, stints:[] });
   laps.forEach(l => {
@@ -54,7 +56,7 @@ async function buildTelemetry(race, kind){
   stints.forEach(st => { const x = D[st.driver_number]; if(x) x.stints.push(st); });
   const rows = Object.values(D).filter(x => x.best != null).sort((a,b) => a.best - b.best);
   const bestSec = [0,1,2].map(i => Math.min(...rows.map(r => r.sec[i]).filter(v => v != null)));
-  return { rows, bestSec, laps, stints };
+  return { rows, bestSec, laps, stints, rc };
 }
 function tlmRowHTML(r, pos, leader, bestSec, kind){
   const d = r.d;
@@ -89,7 +91,7 @@ function tlmRender(data, kind){
   const rec = `<div class="records" style="border-top:none; padding:12px 0 4px">
     <div class="record-badge"><span class="tag">MIGLIOR GIRO</span><div><div class="val">${fmtLap(fast.best)}</div><div class="who">${nm(fast)}</div></div></div>
     ${vmax.top ? `<div class="record-badge"><span class="tag">VMAX</span><div><div class="val">${vmax.top} km/h</div><div class="who">${nm(vmax)}</div></div></div>` : ''}</div>`;
-  return rec + rows.map((r, i) => tlmRowHTML(r, i + 1, fast.best, bestSec, kind)).join('');
+  return rec + rows.map((r, i) => tlmRowHTML(r, i + 1, fast.best, bestSec, kind)).join('') + tlmRCHTML(data.rc);
 }
 async function loadTelemetry(race, kind){
   tlmRace = race; kind = kind || tlmKind;
@@ -153,3 +155,18 @@ document.addEventListener('pane-shown', () => { if(tlmPending && tlmRace && pane
 // se il calendario è arrivato prima di questo script, recupera il GP già mostrato
 (function(){ try{ if(typeof seasonRaces !== 'undefined' && seasonRaces.length && displayedRound && !tlmRace){
   const r = seasonRaces.find(x => x.round == displayedRound); if(r) loadTelemetry(r); } }catch(e){} })();
+
+// ---- Direzione gara (storico): penalità, bandiere, Safety Car della sessione
+function tlmRCHTML(rc){
+  const e = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const msgs = (Array.isArray(rc) ? rc : []).filter(m => m && m.message && m.category !== 'Drs').sort((a, b) => String(a.date).localeCompare(String(b.date)));
+  if(!msgs.length) return '';
+  const FLAG = { RED:'#E10600', YELLOW:'#F5C400', 'DOUBLE YELLOW':'#F5C400', GREEN:'#1CB854', CLEAR:'#1CB854', BLUE:'#0A7EC2', CHEQUERED:'#15151E', 'BLACK AND WHITE':'#15151E' };
+  const rows = msgs.map(m => {
+    const col = FLAG[String(m.flag || '').toUpperCase()] || (m.category === 'SafetyCar' ? '#F5A623' : 'var(--border)');
+    const warn = /PENALTY|INVESTIGAT|NOTED|DELETED|DISQUALIF|UNSAFE|WARNING/i.test(m.message);
+    const d = new Date(m.date), t = isNaN(d) ? '' : d.toLocaleTimeString('it-IT', { hour:'2-digit', minute:'2-digit' });
+    return `<div class="rc-row${warn ? ' rc-warn' : ''}" style="border-left-color:${col}"><span class="rc-meta mono">${t}${m.lap_number ? ' · G' + e(m.lap_number) : ''}</span><span>${e(m.message)}</span></div>`;
+  }).join('');
+  return `<details class="rc-box"><summary class="rc-title" style="cursor:pointer">Direzione gara (${msgs.length} messaggi)</summary>${rows}</details>`;
+}
