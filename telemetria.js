@@ -3,7 +3,9 @@
 // di dati cronometrici su cui si basa anche FastF1.
 // Modulo separato: app.js lo chiama con loadTelemetry(race).
 // ============================================================
-const OPENF1 = 'https://api.openf1.org/v1';
+// Passa dal proxy di Netlify (niente CORS); se il proxy non risponde, chiamata diretta.
+const OPENF1 = '/proxy/openf1';
+const OPENF1_DIRECT = 'https://api.openf1.org/v1';
 const tlmCache = new Map();
 let tlmKind = 'quali';
 let tlmRace = null;
@@ -14,7 +16,13 @@ const TYRES = { SOFT:['S','#E10600','#fff'], MEDIUM:['M','#FFD12E','#15151E'], H
 
 async function of1(path){
   for(let i = 0; i < 3; i++){
-    const res = await fetch(OPENF1 + path);
+    let res;
+    try{
+      res = await fetch(OPENF1 + path);
+      if(!res.ok && res.status !== 429) res = await fetch(OPENF1_DIRECT + path);
+    }catch(e){
+      res = await fetch(OPENF1_DIRECT + path);
+    }
     if(res.status === 429){ await tlmSleep(800 * (i + 1)); continue; }
     if(!res.ok) throw new Error('HTTP ' + res.status);
     return res.json();

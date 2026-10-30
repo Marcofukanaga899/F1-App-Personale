@@ -3,7 +3,13 @@
 // Dati in tempo reale da: jolpica-f1 (calendario/classifiche) e Open-Meteo (meteo)
 // ============================================================
 
-const API_BASE = 'https://api.jolpi.ca/ergast/f1';
+// Le chiamate a jolpica passano dal proxy di Netlify (vedi netlify.toml): il browser parla
+// solo con il nostro dominio, quindi niente blocchi CORS. Se il proxy non risponde si prova
+// la chiamata diretta. L'ultima risposta buona di ogni URL resta salvata sul dispositivo:
+// se tutte le strade falliscono (API giù o sovraccarica durante un GP) si usano i dati salvati.
+const API_BASE = '/proxy/jolpica';
+const API_DIRECT = 'https://api.jolpi.ca/ergast/f1';
+const API_CACHE_PREFIX = 'paddock_api_v1:';
 
 const TEAM_CODES = {
   'Mercedes':'MER', 'Ferrari':'FER', 'McLaren':'MCL', 'Red Bull':'RBR',
@@ -51,10 +57,46 @@ function contrastText(hex){
   return lum > 0.6 ? '#15151E' : '#FFFFFF';
 }
 
+function apiCacheSave(url, data){
+  const key = API_CACHE_PREFIX + url, value = JSON.stringify({ t: Date.now(), d: data });
+  try{ localStorage.setItem(key, value); }
+  catch(e){
+    // spazio pieno: libero le altre risposte salvate (il calendario viene comunque risalvato) e riprovo
+    try{
+      Object.keys(localStorage).filter(k => k.startsWith(API_CACHE_PREFIX) && k !== key).forEach(k => localStorage.removeItem(k));
+      localStorage.setItem(key, value);
+    }catch(e2){}
+  }
+}
+function apiCacheLoad(url){
+  try{ const c = JSON.parse(localStorage.getItem(API_CACHE_PREFIX + url) || 'null'); return c && c.d ? c.d : null; }
+  catch(e){ return null; }
+}
+
 async function fetchJSON(url){
-  const res = await fetch(url);
-  if(!res.ok) throw new Error('HTTP ' + res.status + ' su ' + url);
-  return res.json();
+  const tries = [url];
+  if(url.startsWith(API_BASE + '/')) tries.push(API_DIRECT + url.slice(API_BASE.length));
+  let lastErr = null;
+  for(const u of tries){
+    const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 8000);
+    try{
+      const res = await fetch(u, { signal: ctl.signal });
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      apiCacheSave(url, data);
+      return data;
+    }catch(e){
+      lastErr = e;
+    }finally{
+      clearTimeout(timer);
+    }
+  }
+  const cached = apiCacheLoad(url);
+  if(cached){
+    console.warn('[Paddock] API non raggiungibile, uso i dati salvati sul dispositivo per', url);
+    return cached;
+  }
+  throw new Error(lastErr && lastErr.name === 'AbortError' ? 'timeout' : (lastErr && lastErr.message) || 'rete non disponibile');
 }
 
 // ---------- FAVORITES (localStorage) ----------

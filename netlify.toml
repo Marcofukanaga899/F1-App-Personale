@@ -7,6 +7,20 @@
 [functions."send-reminders"]
   schedule = "*/5 * * * *"
 
+# Proxy verso le API esterne: il browser chiama /proxy/... sul nostro dominio e Netlify
+# inoltra la richiesta lato server (query string comprese), quindi niente blocchi CORS.
+[[redirects]]
+  from = "/proxy/jolpica/*"
+  to = "https://api.jolpi.ca/ergast/f1/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/proxy/openf1/*"
+  to = "https://api.openf1.org/v1/:splat"
+  status = 200
+  force = true
+
 [[headers]]
   for = "/*"
   [headers.values]

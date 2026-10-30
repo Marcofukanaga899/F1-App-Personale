@@ -1,4 +1,4 @@
-const CACHE_NAME = 'paddock-shell-v13';
+const CACHE_NAME = 'paddock-shell-v14';
 const SHELL_FILES = [
   './',
   './index.html',
@@ -38,6 +38,10 @@ self.addEventListener('fetch', (event) => {
   // Non mettere mai in cache le chiamate alle API esterne (dati sempre freschi dalla rete)
   if (url.origin !== self.location.origin) {
     return; // lascia passare la richiesta normalmente
+  }
+  // Stessa regola per le API che passano dal proxy Netlify e per le Netlify Functions
+  if (url.pathname.startsWith('/proxy/') || url.pathname.startsWith('/.netlify/')) {
+    return;
   }
 
   event.respondWith(

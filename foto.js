@@ -41,8 +41,12 @@ const photoFetch = async (url, ms) => { const c = new AbortController(), t = set
 // e il server live sul tuo PC (se configurato), che manda le foto insieme alla classifica
 async function loadPhotos(){
   const add = (code, url) => { if(code && url){ photos[code] = url; return 1; } return 0; };
-  const fromOpenF1 = async () => (await photoFetch('https://api.openf1.org/v1/drivers?session_key=latest', 8000))
-    .reduce((n, d) => n + add(d.name_acronym, d.headshot_url), 0);
+  // prima dal proxy Netlify (niente CORS), poi diretto
+  const fromOpenF1 = async () => {
+    const q = '/drivers?session_key=latest';
+    const list = await photoFetch('/proxy/openf1' + q, 8000).catch(() => photoFetch('https://api.openf1.org/v1' + q, 8000));
+    return list.reduce((n, d) => n + add(d.name_acronym, d.headshot_url), 0);
+  };
   const fromLive = async () => {
     const base = (localStorage.getItem('paddock_live_url') || '').trim().replace(/\/api(\/.*)?$/i, '').replace(/\/+$/, '');
     if(!base) return 0;
